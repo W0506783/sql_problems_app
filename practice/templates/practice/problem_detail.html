@@ -1,0 +1,223 @@
+{% load custom_markdown %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>{{ problem.title }}</title>
+
+  <!-- CSS Link for Syntax Highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+
+  <style>
+    /* NEW: Force the page to be full-height and remove default margins */
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      /* This is critical: prevents the main page scrollbar */
+    }
+
+    body {
+      font-family: sans-serif;
+      display: flex;
+      height: 100vh;
+      /* CHANGED: Make the flex container fill the screen's height */
+    }
+
+    .column {
+      flex: 50%;
+      padding: 20px;
+    }
+
+    .left-column {
+      border-right: 1px solid #ccc;
+      overflow-y: auto;
+      /* NEW: Add a scrollbar ONLY to this column, and only when needed */
+    }
+
+    /* --- No changes needed to the styles below this line --- */
+
+    pre {
+      background-color: #f4f4f4;
+      padding: 15px;
+      border-radius: 5px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    code {
+      font-family: monospace;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: monospace;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 15px;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .error-message {
+      background-color: #ffebee;
+      color: #c62828;
+      border: 1px solid #c62828;
+      padding: 15px;
+      border-radius: 5px;
+    }
+
+    details {
+      border: 1px solid #aaa;
+      border-radius: 4px;
+      padding: .5em .5em 0;
+      margin-bottom: 1rem;
+    }
+
+    summary {
+      font-weight: bold;
+      margin: -.5em -.5em 0;
+      padding: .5em;
+      cursor: pointer;
+    }
+
+    details[open] {
+      padding: .5em;
+    }
+
+    details[open] summary {
+      border-bottom: 1px solid #aaa;
+      margin-bottom: .5em;
+    }
+
+    messages {
+      margin-bottom: 15px;
+    }
+
+    message {
+      padding: 15px;
+      border-radius: 5px;
+      color: white;
+      font-weight: bold;
+    }
+
+    message.success {
+      background-color: #4CAF50;
+      /* Green */
+    }
+
+    message.error {
+      background-color: #f44336;
+      /* Red */
+    }
+
+    error-message {
+      background-color: #ffebee;
+      color: #c62828;
+      border: 1px solid #c62828;
+      padding: 15px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Left Column: The Problem and Explanation -->
+  <div class="column left-column">
+    <h1>{{ problem.title }}</h1>
+    <hr>
+
+
+
+    <h3>Problem Description</h3>
+    {{ problem.description | convert_markdown | safe }}
+    <hr>
+
+    <h3>Solution Breakdown</h3>
+    {{ problem.solution_explanation | convert_markdown | safe }}
+  </div>
+
+  <!-- Right Column: The SQL Editor and Results -->
+  <div class="column right-column">
+    {% if messages %}
+    <div class="messages">
+      {% for message in messages %}
+      <div class="message {{ message.tags }}">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <h2>SQL Editor</h2>
+
+    <form method="POST">
+      {% csrf_token %}
+      <textarea name="user_query" rows="10">{{ user_query }}</textarea> {# Increased rows for better UX #}
+      <br>
+
+      <!-- NEW: Two distinct buttons for different actions -->
+      <button type="submit" name="action" value="run">Run Query</button>
+      <button type="submit" name="action" value="submit" style="background-color: #4CAF50; color: white;">Submit
+        Solution</button>
+
+    </form>
+
+    <hr>
+
+    <h3>Results</h3>
+    <div>
+      {% if query_error %}
+      <div class="error-message">
+        <strong>Error:</strong>
+        <pre><code>{{ query_error }}</code></pre>
+      </div>
+
+      {% elif query_results is not None %}
+      {% if query_results %}
+      <table>
+        <thead>
+          <tr>
+            {% for header in column_headers %}
+            <th>{{ header }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in query_results %}
+          <tr>
+            {% for cell in row %}
+            <td>{{ cell }}</td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p>Query executed successfully and returned 0 rows.</p>
+      {% endif %}
+
+      {% else %}
+      <p>Your query results will appear here.</p>
+      {% endif %}
+    </div>
+  </div>
+
+</body>
+
+</html>

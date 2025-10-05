@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'practice',
+    'markdownify.apps.MarkdownifyConfig',
 ]
 
 MIDDLEWARE = [
@@ -74,8 +76,12 @@ WSGI_APPLICATION = 'project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'sql_problems_db',
+        'USER': 'dylan',
+        'PASSWORD': 'dylan_password', # Make sure this matches
+        'HOST': 'db',
+        'PORT': '5432',
     }
 }
 
@@ -120,3 +126,18 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# MARKDOWNIFY CONFIGURATION
+# ==============================================================================
+MARKDOWNIFY = {
+    "extensions": [
+        "markdown.extensions.tables",
+        "markdown.extensions.fenced_code",
+    ],
+    "WHITELIST_TAGS": [
+        'a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em', 'i',
+        'li', 'ol', 'p', 'pre', 'strong', 'ul', 'h1', 'h2', 'h3', 'h4',
+        'h5', 'h6', 'hr', 'br', 'table', 'thead', 'tbody', 'tr', 'th',
+        'td', 'details', 'summary'
+    ]
+}
