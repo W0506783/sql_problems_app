@@ -19,20 +19,25 @@ def problem_detail(request, problem_id):
     if request.method != 'POST':
         return render(request, 'practice/problem_detail.html', context)
 
-    user_query = request.POST.get('user_query', '')
+    user_query = request.POST.get('user_query', '').strip() # NEW: .strip() to handle whitespace
     action = request.POST.get('action')
 
     # --- BRANCH 1: User clicked "Run Query" ---
     if action == 'run':
         context.update({'user_query': user_query})
         
+        # NEW: Check for empty query BEFORE execution
+        if not user_query:
+            context['query_error'] = "Cannot execute an empty query."
+            return render(request, 'practice/problem_detail.html', context)
+
         try:
             with transaction.atomic():
                 with connection.cursor() as cursor:
                     for schema_sql in problem.schemas.all():
                         cursor.execute(schema_sql.script)
                     
-                    cursor.execute(user_query)
+                    cursor.execute(user_query) # Only executes if user_query is not empty
                     
                     context['query_results'] = cursor.fetchall()
                     context['column_headers'] = [col[0] for col in cursor.description] if cursor.description else []
@@ -47,6 +52,11 @@ def problem_detail(request, problem_id):
     elif action == 'submit':
         request.session['user_query'] = user_query
         
+        # NEW: Check for empty query BEFORE execution for submit too
+        if not user_query:
+            messages.error(request, "Cannot submit an empty query.")
+            return redirect('practice:problem_detail', problem_id=problem.id)
+
         try:
             with transaction.atomic():
                 with connection.cursor() as cursor:
@@ -57,7 +67,6 @@ def problem_detail(request, problem_id):
 
                 if not hasattr(problem, 'solution') or not problem.solution.query:
                     messages.error(request, "This problem does not have a solution configured yet.")
-                    # FIX: Added 'practice:' namespace
                     return redirect('practice:problem_detail', problem_id=problem.id)
 
                 with connection.cursor() as cursor:
@@ -75,8 +84,6 @@ def problem_detail(request, problem_id):
         except Exception as e:
             messages.error(request, f"An unexpected application error occurred: {e}")
         
-        # FIX: Added 'practice:' namespace
         return redirect('practice:problem_detail', problem_id=problem.id)
 
-    # FIX: Added 'practice:' namespace
     return redirect('practice:problem_detail', problem_id=problem.id)

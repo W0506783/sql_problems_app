@@ -6,8 +6,14 @@
   <meta charset="UTF-8">
   <title>{{ problem.title }}</title>
 
-  <!-- CSS Link for Syntax Highlighting -->
+  <!-- CSS Link for Syntax Highlighting (for markdown blocks) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+
+  <!-- CodeMirror 5 Styles -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
+  <!-- CodeMirror Theme -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/dracula.min.css">
+
 
   <style>
     /* NEW: Force the page to be full-height and remove default margins */
@@ -16,14 +22,12 @@
       height: 100%;
       margin: 0;
       overflow: hidden;
-      /* This is critical: prevents the main page scrollbar */
     }
 
     body {
       font-family: sans-serif;
       display: flex;
       height: 100vh;
-      /* CHANGED: Make the flex container fill the screen's height */
     }
 
     .column {
@@ -34,10 +38,7 @@
     .left-column {
       border-right: 1px solid #ccc;
       overflow-y: auto;
-      /* NEW: Add a scrollbar ONLY to this column, and only when needed */
     }
-
-    /* --- No changes needed to the styles below this line --- */
 
     pre {
       background-color: #f4f4f4;
@@ -51,11 +52,83 @@
       font-family: monospace;
     }
 
-    textarea {
-      width: 100%;
-      height: 200px;
-      font-family: monospace;
+    /* Keep original hidden, but also ensure CodeMirror's takeover if it works */
+    textarea#user-query-editor {
+      /* Target specifically your textarea */
+      display: none;
     }
+
+
+    /* CodeMirror editor itself */
+    .CodeMirror {
+      border: 1px solid #ccc;
+      height: 250px;
+      font-size: 0.9em;
+      line-height: 1.5;
+      position: relative;
+      /* Ensure z-index has a stacking context */
+      z-index: 1;
+      /* Give it a base z-index */
+      overflow: hidden;
+      /* Standard for CodeMirror */
+    }
+
+    /* Apply theme styles to the CodeMirror editor */
+    .cm-s-dracula.CodeMirror {
+      background-color: #282a36;
+      color: #f8f8f2;
+    }
+
+    /* ****************************************************** */
+    /* *** DIAGNOSTIC: FORCE CODE MIRROR INPUT TO BE VISIBLE *** */
+    /* ****************************************************** */
+    /* General CodeMirror internal elements to ensure they are interactive */
+    .CodeMirror-vscrollbar,
+    .CodeMirror-hscrollbar,
+    .CodeMirror-scroll,
+    .CodeMirror-gutters,
+    .CodeMirror-lines,
+    .CodeMirror-cursors,
+    .CodeMirror-measure,
+    .CodeMirror-ruler,
+    .CodeMirror-sizer {
+      pointer-events: auto !important;
+      z-index: auto !important;
+      /* Revert z-index to default flow or let CodeMirror handle */
+    }
+
+    /* Ensure the general code display area can receive events too */
+    .CodeMirror-code {
+      pointer-events: auto !important;
+      z-index: 1;
+    }
+
+    /* THIS IS THE CRITICAL DIAGNOSTIC RULE: */
+    /* Target CodeMirror's internal input textarea, make it huge and visible. */
+    .CodeMirror-lines>div>textarea,
+    /* Common path for CodeMirror 5's input textarea */
+    .CodeMirror>textarea {
+      /* Less common, but sometimes the textarea is a direct child */
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      opacity: 0.5 !important;
+      /* Make it semi-transparent so you can see if it's there */
+      z-index: 99999 !important;
+      /* Put it on top of EVERYTHING */
+      display: block !important;
+      visibility: visible !important;
+      background-color: red !important;
+      /* Make it glaringly obvious */
+      pointer-events: auto !important;
+      /* Absolutely ensure it receives mouse events */
+    }
+
+    /* ****************************************************** */
+    /* ****************************************************** */
+
 
     table {
       border-collapse: collapse;
@@ -105,45 +178,32 @@
       margin-bottom: .5em;
     }
 
-    messages {
+    .messages {
       margin-bottom: 15px;
     }
 
-    message {
+    .message {
       padding: 15px;
       border-radius: 5px;
       color: white;
       font-weight: bold;
     }
 
-    message.success {
+    .message.success {
       background-color: #4CAF50;
-      /* Green */
     }
 
-    message.error {
+    .message.error {
       background-color: #f44336;
-      /* Red */
-    }
-
-    error-message {
-      background-color: #ffebee;
-      color: #c62828;
-      border: 1px solid #c62828;
-      padding: 15px;
-      border-radius: 5px;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- Left Column: The Problem and Explanation -->
   <div class="column left-column">
     <h1>{{ problem.title }}</h1>
     <hr>
-
-
 
     <h3>Problem Description</h3>
     {{ problem.description | convert_markdown | safe }}
@@ -153,7 +213,6 @@
     {{ problem.solution_explanation | convert_markdown | safe }}
   </div>
 
-  <!-- Right Column: The SQL Editor and Results -->
   <div class="column right-column">
     {% if messages %}
     <div class="messages">
@@ -166,12 +225,11 @@
     {% endif %}
     <h2>SQL Editor</h2>
 
-    <form method="POST">
+    <form method="POST" id="sql-form">
       {% csrf_token %}
-      <textarea name="user_query" rows="10">{{ user_query }}</textarea> {# Increased rows for better UX #}
+      <textarea name="user_query" id="user-query-editor">{{ user_query }}</textarea>
       <br>
 
-      <!-- NEW: Two distinct buttons for different actions -->
       <button type="submit" name="action" value="run">Run Query</button>
       <button type="submit" name="action" value="submit" style="background-color: #4CAF50; color: white;">Submit
         Solution</button>
@@ -217,6 +275,60 @@
       {% endif %}
     </div>
   </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <script>
+    hljs.highlightAll();
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/sql/sql.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/edit/matchbrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/edit/closebrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/selection/active-line.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/display/placeholder.min.js"></script>
+
+
+  <script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+      console.log('DOM fully loaded and parsed');
+      const textarea = document.getElementById('user-query-editor');
+      if (textarea) {
+        console.log('Found textarea with ID user-query-editor');
+        // This is a defensive check against double initialization.
+        // It looks for a CodeMirror instance *immediately after* the original textarea.
+        if (textarea.nextElementSibling && textarea.nextElementSibling.classList.contains('CodeMirror')) {
+          console.warn('CodeMirror instance already found. Skipping re-initialization to prevent duplicates.');
+          // Optionally remove it if you suspect bad state, but for this diagnostic, let it be.
+          // textarea.nextElementSibling.remove();
+        }
+
+        try {
+          const editor = CodeMirror.fromTextArea(textarea, {
+            mode: 'text/x-sql',
+            lineNumbers: true,
+            theme: 'dracula',
+            indentWithTabs: true,
+            smartIndent: true,
+            matchBrackets: true,
+            autoCloseBrackets: true,
+            styleActiveLine: true,
+          });
+          const form = document.getElementById('sql-form');
+          if (form) {
+            form.addEventListener('submit', () => {
+              textarea.value = editor.getValue();
+            });
+          }
+          console.log('CodeMirror initialized successfully!');
+        } catch (e) {
+          console.error('Error initializing CodeMirror:', e);
+        }
+      } else {
+        console.error('Could not find textarea with ID user-query-editor');
+      }
+    });
+  </script>
 
 </body>
 
