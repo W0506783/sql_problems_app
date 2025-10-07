@@ -55,6 +55,7 @@
     /* Keep original hidden, but also ensure CodeMirror's takeover if it works */
     textarea#user-query-editor {
       /* Target specifically your textarea */
+      /* This rule will be overridden by CodeMirror's internal styles if it initializes correctly */
       display: none;
     }
 
@@ -314,10 +315,17 @@
             autoCloseBrackets: true,
             styleActiveLine: true,
           });
+          console.log('CodeMirror editor object:', editor); // Log the editor object
+
           const form = document.getElementById('sql-form');
           if (form) {
-            form.addEventListener('submit', () => {
-              textarea.value = editor.getValue();
+            form.addEventListener('submit', (e) => {
+              console.log('Form submit event triggered.');
+              const currentCodeMirrorValue = editor.getValue();
+              textarea.value = currentCodeMirrorValue; // Update the original textarea
+              console.log('Textarea value set to:', textarea.value); // Log updated textarea value
+              // You can uncomment this line if you want to inspect the textarea value
+              // alert('Textarea value on submit: ' + textarea.value);
             });
           }
           console.log('CodeMirror initialized successfully!');

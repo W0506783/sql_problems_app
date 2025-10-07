@@ -14,6 +14,11 @@ Generally safe for data, as long as you have named volumes configured. docker-co
 
 **DANGER! This WILL delete your named volumes and all your database data! Only use this if you explicitly want to wipe your database and start fresh.**
 
+## SEED PROBLEMS
+
+`docker-compose run web python manage.py seed_problems`
+
+
 You've hit on another excellent point that touches on a crucial aspect of application development: **managing initial or "seed" data**. Manually copying and pasting into the Django admin is definitely *not* the scalable or sustainable way to manage your problem data, especially when working across different environments or with a team.
 
 You're absolutely right that there's a file stored with this information – your `.md` problem descriptions. The goal is to get that information **into the database reliably and automatically**, especially for new deployments or environments.
