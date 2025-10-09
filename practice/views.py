@@ -33,6 +33,12 @@ def problem_detail(request, problem_id):
         print("WARNING: user_query is empty after stripping whitespace!")
     # --- END MORE DEBUGGING ADDITIONS ---
 
+    # Add query type validation
+    user_query_lower = user_query.lower().strip()
+    if not (user_query_lower.startswith('select') or user_query_lower.startswith('with')):
+        messages.error(request, "Only SELECT queries (including those starting with WITH) are allowed.")
+        return redirect('practice:problem_detail', problem_id=problem.id)
+
     action = request.POST.get('action')
 
     # --- BRANCH 1: User clicked "Run Query" ---
@@ -130,7 +136,7 @@ def problem_detail(request, problem_id):
                     solution_cursor.execute(problem.solution.query)
                     solution_results = solution_cursor.fetchall()
                 
-                if user_results == solution_results:
+                if sorted(user_results) == sorted(solution_results):
                     messages.success(request, 'Correct! Your solution is accurate.')
                     print("Solution is correct!")
                 else:

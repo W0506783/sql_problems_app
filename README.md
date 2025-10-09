@@ -2,6 +2,8 @@
 
 Safe for data. This will start your services. If your db container already exists and is configured with a volume, it will simply restart or attach to the existing data. If it's a new db container, it will create/attach to the pg_data volume and your data will persist.
 
+`docker-compose exec web python manage.py makemigrations`
+
 `docker-compose exec web python manage.py migrate`
 
 Safe for data. This runs Django migrations. It modifies your database schema but doesn't delete the entire database or volume.
@@ -17,6 +19,10 @@ Generally safe for data, as long as you have named volumes configured. docker-co
 ## SEED PROBLEMS
 
 `docker-compose run web python manage.py seed_problems`
+
+## CREATE SUPERUSER
+
+`docker-compose exec web python manage.py createsuperuser`
 
 
 You've hit on another excellent point that touches on a crucial aspect of application development: **managing initial or "seed" data**. Manually copying and pasting into the Django admin is definitely *not* the scalable or sustainable way to manage your problem data, especially when working across different environments or with a team.
