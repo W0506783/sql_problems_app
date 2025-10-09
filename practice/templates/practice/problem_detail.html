@@ -214,16 +214,7 @@
     {{ problem.solution_explanation | convert_markdown | safe }}
   </div>
 
-  <div class="column right-column">
-    {% if messages %}
-    <div class="messages">
-      {% for message in messages %}
-      <div class="message {{ message.tags }}">
-        {{ message }}
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
+<div class="column right-column">
     <h2>SQL Editor</h2>
 
     <form method="POST" id="sql-form">
@@ -234,48 +225,66 @@
       <button type="submit" name="action" value="run">Run Query</button>
       <button type="submit" name="action" value="submit" style="background-color: #4CAF50; color: white;">Submit
         Solution</button>
-
     </form>
 
     <hr>
 
     <h3>Results</h3>
+
+    <!-- START: UNIFIED RESULTS AND MESSAGES BLOCK -->
     <div>
+      
+      <!-- First, display any messages from the messages framework -->
+      {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+        <div class="message {{ message.tags }}">
+          {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Second, display any query errors -->
       {% if query_error %}
       <div class="error-message">
         <strong>Error:</strong>
         <pre><code>{{ query_error }}</code></pre>
       </div>
 
+      <!-- Third, display the results table if it exists -->
       {% elif query_results is not None %}
-      {% if query_results %}
-      <table>
-        <thead>
-          <tr>
-            {% for header in column_headers %}
-            <th>{{ header }}</th>
+        {% if query_results %}
+        <table>
+          <thead>
+            <tr>
+              {% for header in column_headers %}
+              <th>{{ header }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in query_results %}
+            <tr>
+              {% for cell in row %}
+              <td>{{ cell }}</td>
+              {% endfor %}
+            </tr>
             {% endfor %}
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in query_results %}
-          <tr>
-            {% for cell in row %}
-            <td>{{ cell }}</td>
-            {% endfor %}
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p>Query executed successfully and returned 0 rows.</p>
-      {% endif %}
+          </tbody>
+        </table>
+        {% else %}
+        <p>Query executed successfully and returned 0 rows.</p>
+        {% endif %}
 
+      <!-- Finally, show the default message if nothing else has happened -->
       {% else %}
-      <p>Your query results will appear here.</p>
+        <p>Your query results will appear here.</p>
       {% endif %}
     </div>
-  </div>
+    <!-- END: UNIFIED RESULTS AND MESSAGES BLOCK -->
+
+</div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <script>
