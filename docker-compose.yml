@@ -3,10 +3,12 @@ services:
     image: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+    # The 'environment' block now uses variables that Docker Compose
+    # will pull from the .env file.
     environment:
-      - POSTGRES_DB=sql_problems_db
-      - POSTGRES_USER=dylan
-      - POSTGRES_PASSWORD=dylan_password
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
   web:
     build: .
@@ -15,6 +17,10 @@ services:
       - .:/app
     ports:
       - "8000:8000"
+    # This 'env_file' directive makes all variables from .env
+    # available inside the 'web' container.
+    env_file:
+      - ./.env
     depends_on:
       - db
 

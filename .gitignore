@@ -1,0 +1,64 @@
+# .gitignore
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django stuff:
+*.log
+*.pot
+*.pyc
+db.sqlite3
+media/
+staticfiles/
+local_settings.py
+
+# dotenv environment variables
+.env
+
+# Unit test / coverage reports
+htmlcov/
+.coverage
+.tox/
+.noseids
+coverage.xml
+*.cover
+.hypothesis/
+
+# Pytest cache
+.pytest_cache/
+
+# MyPy and Pyre type checker
+.mypy_cache/
+.pyre/
+
+# VSCode and IDEs
+.vscode/
+.idea/
+
+# Docker
+*.pid
+*.seed
+*.bak
+docker-compose.override.yml
+docker-compose*.log
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Build
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Postgres (if

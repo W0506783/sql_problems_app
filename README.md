@@ -24,6 +24,20 @@ Generally safe for data, as long as you have named volumes configured. docker-co
 
 `docker-compose exec web python manage.py createsuperuser`
 
+**Useful Docker Commands (for reference):**
+
+
+*   `docker --version`: Run the following command to ensure Docker is correctly installed and accessible from your terminal
+*   `docker images`: List all Docker images.
+*   `docker ps`: List running containers.
+*   `docker ps -a`: List all containers (running and stopped).
+*   `docker stop <container_id_or_name>`: Stop a running container.
+*   `docker rm <container_id_or_name>`: Remove a stopped container.
+*   `docker rmi <image_id_or_name>`: Remove a Docker image.
+*   `docker logs <container_id_or_name>`: View logs from a container.
+*   `docker exec -it <container_id_or_name> bash`: Get a shell inside a running container.
+
+This covers the basic setup and workflow for using Docker with VS Code!
 
 You've hit on another excellent point that touches on a crucial aspect of application development: **managing initial or "seed" data**. Manually copying and pasting into the Django admin is definitely *not* the scalable or sustainable way to manage your problem data, especially when working across different environments or with a team.
 
